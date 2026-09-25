@@ -1,6 +1,6 @@
 #!/bin/sh
 
-version_number="5.1.4"
+version_number="5.1.5"
 
 # UI
 
@@ -451,6 +451,7 @@ mode="${ANI_CLI_MODE:-sub}"
 download_dir="${ANI_CLI_DOWNLOAD_DIR:-.}"
 log_episode="${ANI_CLI_LOG:-1}"
 quality="${ANI_CLI_QUALITY:-best}"
+exact_match="${ANI_CLI_EXACT_MATCH:-0}"
 
 curl_exe=$(dep_ch_failover "curl_firefox135,curl_chrome136,curl_chrome116,curl_ff117,curl") || die "Program curl not found"
 
@@ -611,6 +612,16 @@ case "$source" in
 
         anime_list=$(hianime_search "$query") || exit 1
         [ -z "$anime_list" ] && die "No results found!"
+        if [ "$exact_match" = 1 ]; then
+            exact_query=$(printf "%s" "$query" | tr '+' ' ')
+            anime_list=$(printf '%s\n' "$anime_list" | while IFS= read -r entry; do
+                title=$(printf '%s' "$entry" | cut -f 2-)
+                if printf '%s\n' "$title" | grep -Fiqx -e "$exact_query"; then
+                    printf '%s\n' "$entry"
+                fi
+            done)
+            [ -z "$anime_list" ] && die "No exact match found for: $exact_query"
+        fi
         [ "$index" -eq "$index" ] 2>/dev/null && result=$(printf "%s" "$anime_list" | sed -n "${index}p")
         [ -z "$index" ] && result=$(printf "%s" "$anime_list" | nl -w 2 | sed 's/^[[:space:]]//' | nth "Select anime: ")
         [ -z "$result" ] && die "Invalid anime selection"
