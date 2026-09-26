@@ -12,7 +12,7 @@ for arg do
     case "$arg" in
         *search\?keyword=*)
             printf '%s\n' "$arg" >>"$MOCK_CURL_LOG"
-            printf '%s' '<div class="film-detail"><h3 class="film-name"><a href="/wrong-show-111" title="Wrong Show">Wrong Show</a></h3></div><div class="film-detail"><h3 class="film-name"><a href="/target-show-222" title="Target Show">Target Show</a></h3></div> 200'
+            printf '%s' '<div class="film-detail"><h3 class="film-name"><a href="/wrong-show-111" title="Wrong Show">Wrong Show</a></h3></div><div class="film-detail"><h3 class="film-name"><a href="/target-show-222" title="Target Show">Target Show</a></h3></div><div class="film-detail"><h3 class="film-name"><a href="/plus-show-333" title="A+B">A+B</a></h3></div> 200'
             exit 0
             ;;
         */api/theme/episode/list/*)
@@ -56,6 +56,10 @@ run_case 1 'Target.*' -e 1
 curl_calls=$(wc -l <"$test_dir/curl.log")
 test "$curl_calls" -eq 1
 grep -q 'No exact match found' "$test_dir/output"
+
+run_case 1 'A+B' -e 1
+grep -q 'search?keyword=A%2BB' "$test_dir/curl.log"
+grep -q '/api/theme/episode/list/333' "$test_dir/curl.log"
 
 run_case 0 'Missing Show' -e 1
 grep -q '/api/theme/episode/list/111' "$test_dir/curl.log"

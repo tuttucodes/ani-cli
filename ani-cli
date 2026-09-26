@@ -555,7 +555,7 @@ while [ $# -gt 0 ]; do
             branch="${2:-$branch}"
             update_script
             ;;
-        *) query="$(printf "%s" "$query $1" | sed 's|^ ||;s| |+|g')" ;;
+        *) query="$(printf "%s" "$query $1" | sed 's|^ ||')" ;;
     esac
     shift
 done
@@ -608,12 +608,12 @@ case "$source" in
         # for checking new releases by specifying anime name
         [ "$source" = "nextep" ] && time_until_next_ep "$query"
 
-        query=$(printf "%s" "$query" | sed 's| |+|g')
+        exact_query=$query
+        query=$(printf "%s" "$query" | sed 's|+|%2B|g;s| |+|g')
 
         anime_list=$(hianime_search "$query") || exit 1
         [ -z "$anime_list" ] && die "No results found!"
         if [ "$exact_match" = 1 ]; then
-            exact_query=$(printf "%s" "$query" | tr '+' ' ')
             anime_list=$(printf '%s\n' "$anime_list" | while IFS= read -r entry; do
                 title=$(printf '%s' "$entry" | cut -f 2-)
                 if printf '%s\n' "$title" | grep -Fiqx -e "$exact_query"; then
